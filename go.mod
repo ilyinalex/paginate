@@ -1,4 +1,4 @@
-module github.com/ilynalex/paginate
+module github.com/ilyinalex/paginate
 
 go 1.15
 
