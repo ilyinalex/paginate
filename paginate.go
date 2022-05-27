@@ -581,7 +581,7 @@ func arrayToFilter(arr []interface{}, config Config) pageFilters {
 							byt := re.ReplaceAll([]byte(value), []byte("%"))
 							value = string(byt)
 						}
-						filters.Value = fmt.Sprintf("%s%s%s", "%", value, "%")
+						filters.Value = value
 					default:
 						filters.Value = i
 					}

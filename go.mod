@@ -1,8 +1,9 @@
-module github.com/morkid/paginate
+module github.com/ilyinalex/paginate
 
 go 1.15
 
 require (
+	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/iancoleman/strcase v0.1.3
 	github.com/klauspost/compress v1.11.12 // indirect
 	github.com/morkid/gocache v1.0.0
