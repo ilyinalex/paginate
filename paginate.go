@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gorm.io/gorm/clause"
 	"log"
 	"math"
 	"net/http"
@@ -209,6 +210,13 @@ func (r resContext) Response(res interface{}) Page {
 	}
 	if len(causes.Sorts) > 0 {
 		for _, sort := range causes.Sorts {
+			if sort.Column == "\"version\"" {
+				result.Statement.AddClause(clause.OrderBy{
+					Expression: clause.Expr{SQL: "string_to_array(version, '.')::int[] " + sort.Direction, Vars: []interface{}{}, WithoutParentheses: true},
+				})
+				continue
+			}
+
 			result = result.Order(sort.Column + " " + sort.Direction)
 		}
 	}
