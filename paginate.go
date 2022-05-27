@@ -210,9 +210,9 @@ func (r resContext) Response(res interface{}) Page {
 	}
 	if len(causes.Sorts) > 0 {
 		for _, sort := range causes.Sorts {
-			if sort.Column == "version" {
+			if sort.Column == "\"version\"" {
 				result.Statement.AddClause(clause.OrderBy{
-					Expression: clause.Expr{SQL: "string_to_array(version, '.')::int[]", Vars: []interface{}{}, WithoutParentheses: true},
+					Expression: clause.Expr{SQL: "string_to_array(version, '.')::int[] " + sort.Direction, Vars: []interface{}{}, WithoutParentheses: true},
 				})
 				continue
 			}
