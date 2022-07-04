@@ -717,8 +717,8 @@ func generateWhereCauses(f pageFilters, config Config) ([]string, []interface{})
 			default:
 				matched, _ := regexp.Match("^-?\\d+\\.?\\d*$", []byte(fmt.Sprintf("%v", f.Value)))
 				if fname == "\"version\"" && matched {
-					sql := "\"version\" ~ '^-?\\d+\\.?\\d*$' AND NULLIF(\"version\", '')::float"
-					wheres = append(wheres, sql, f.Operator, "?")
+					sql := `string_to_array("version", '.')::int[]`
+					wheres = append(wheres, sql, f.Operator, `string_to_array(?, '.')::int[]`)
 				} else {
 					wheres = append(wheres, fname, f.Operator, "?")
 				}
