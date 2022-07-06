@@ -9,6 +9,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"net/url"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -583,6 +584,11 @@ func arrayToFilter(arr []interface{}, config Config) pageFilters {
 						}
 						value := fmt.Sprintf("%v", i)
 						re := regexp.MustCompile(escapePattern)
+						var err error
+						value, err = url.QueryUnescape(value)
+						if err != nil {
+							return filters
+						}
 						value = string(re.ReplaceAll([]byte(value), []byte(escapeString+`$1`)))
 						if config.SmartSearch {
 							re := regexp.MustCompile(`[\s]+`)
@@ -591,7 +597,11 @@ func arrayToFilter(arr []interface{}, config Config) pageFilters {
 						}
 						filters.Value = value
 					default:
-						filters.Value = i
+						value, err := url.QueryUnescape(fmt.Sprintf("%v", i))
+						if err != nil {
+							return filters
+						}
+						filters.Value = value
 					}
 				}
 			}
@@ -715,7 +725,13 @@ func generateWhereCauses(f pageFilters, config Config) ([]string, []interface{})
 					params = append(params, f.Value)
 				}
 			default:
-				wheres = append(wheres, fname, f.Operator, "?")
+				matched, _ := regexp.Match("^-?\\d+\\.?\\d*$", []byte(fmt.Sprintf("%v", f.Value)))
+				if fname == "\"version\"" && matched {
+					sql := `string_to_array("version", '.')::int[]`
+					wheres = append(wheres, sql, f.Operator, `string_to_array(?, '.')::int[]`)
+				} else {
+					wheres = append(wheres, fname, f.Operator, "?")
+				}
 				params = append(params, valueFixer(f.Value))
 			}
 		}
