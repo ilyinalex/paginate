@@ -568,7 +568,7 @@ func arrayToFilter(arr []interface{}, config Config) pageFilters {
 					}
 				} else if k == 2 {
 					switch filters.Operator {
-					case "LIKE", "ILIKE", "NOT LIKE", "NOT ILIKE":
+					case "LIKE", "ILIKE", "NOT LIKE", "NOT ILIKE", "STARTS WITH", "ENDS WITH":
 						escapeString := ""
 						escapePattern := `(%|\\)`
 						if nil != config.Statement {
@@ -591,9 +591,13 @@ func arrayToFilter(arr []interface{}, config Config) pageFilters {
 						}
 						value = string(re.ReplaceAll([]byte(value), []byte(escapeString+`$1`)))
 						if config.SmartSearch {
-							re := regexp.MustCompile(`[\s]+`)
-							byt := re.ReplaceAll([]byte(value), []byte("%"))
-							value = string(byt)
+							if filters.Operator == "STARTS WITH" {
+								value = value + "%"
+							} else if filters.Operator == "ENDS WITH" {
+								value = "%" + value
+							} else {
+								value = "%" + value + "%"
+							}
 						}
 						filters.Value = value
 					default:
@@ -705,11 +709,15 @@ func generateWhereCauses(f pageFilters, config Config) ([]string, []interface{})
 					wheres = append(wheres, fname, f.Operator, "?")
 					params = append(params, valueFixer(values))
 				}
-			case "LIKE", "NOT LIKE", "ILIKE", "NOT ILIKE":
+			case "LIKE", "NOT LIKE", "ILIKE", "NOT ILIKE", "STARTS WITH", "ENDS WITH":
 				if config.FieldWrapper != "" {
 					fname = fmt.Sprintf(config.FieldWrapper, fname)
 				}
-				wheres = append(wheres, fname, f.Operator, "?")
+				if f.Operator == "STARTS WITH" || f.Operator == "ENDS WITH" {
+					wheres = append(wheres, fname, "LIKE", "?")
+				} else {
+					wheres = append(wheres, fname, f.Operator, "?")
+				}
 				if f.ValueSuffix != "" {
 					wheres = append(wheres, f.ValueSuffix)
 				}
